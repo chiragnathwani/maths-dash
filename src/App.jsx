@@ -299,10 +299,10 @@ export default function App() {
   }
 
   if (screen === 'home') return (
-    <>
+    <div style={{display:'flex', flexDirection:'column', alignItems:'center', width:'100%'}}>
       <HomeScreen onStart={handleStart} />
       <footer className="footer">© 2026 Activ Ops Solutions Ltd. All rights reserved.</footer>
-    </>
+    </div>
   )
   if (screen === 'game') return (
     <GameScreen
