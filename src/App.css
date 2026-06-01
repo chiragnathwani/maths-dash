@@ -156,6 +156,93 @@ body {
 }
 .home-btn:hover { background: #e5e7eb; transform: translateY(-2px); }
 
+/* Best scores section */
+.best-scores-section {
+  margin-top: 20px;
+  width: 100%;
+  text-align: center;
+}
+
+.scores-toggle-btn {
+  font-size: 0.85rem;
+  padding: 8px 18px;
+  border-radius: 50px;
+  border: 2px solid #ddd6fe;
+  background: #faf5ff;
+  color: #7c3aed;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.scores-toggle-btn:hover { background: #ede9fe; border-color: #7c3aed; }
+
+.best-scores-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.best-score-card {
+  background: linear-gradient(135deg, #faf5ff, #ede9fe);
+  border: 2px solid #ddd6fe;
+  border-radius: 14px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.best-score-icon { font-size: 1.4rem; }
+.best-score-label { font-size: 0.7rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; }
+.best-score-value { font-size: 2rem; font-weight: 900; color: #7c3aed; line-height: 1.1; }
+
+/* Top scores panel */
+.top-scores-panel {
+  margin-top: 14px;
+  border: 2px solid #ddd6fe;
+  border-radius: 16px;
+  overflow: hidden;
+  text-align: left;
+}
+
+.top-scores-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  padding: 12px 16px;
+}
+
+.top-scores-title {
+  color: white;
+  font-size: 1rem;
+  font-weight: 900;
+  margin: 0;
+}
+
+.top-scores-mode {
+  padding: 12px 16px;
+  border-bottom: 1px solid #ede9fe;
+}
+.top-scores-mode:last-child { border-bottom: none; }
+
+.top-scores-mode-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #7c3aed;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+
+.top-scores-table { width: 100%; border-collapse: collapse; }
+.top-scores-table tr { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.top-scores-table tr.top-row .score-cell { color: #7c3aed; font-size: 1.1rem; }
+.rank-cell { font-size: 1rem; width: 28px; flex-shrink: 0; }
+.score-cell { font-size: 1rem; font-weight: 900; color: #1f2937; width: 36px; flex-shrink: 0; }
+.date-cell { font-size: 0.78rem; color: #9ca3af; flex: 1; }
+
 /* Best score badge on mode buttons */
 .mode-best {
   display: block;
