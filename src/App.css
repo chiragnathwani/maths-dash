@@ -29,7 +29,7 @@ body {
 }
 
 /* Home */
-.logo { font-size: 4rem; margin-bottom: 8px; }
+.logo-img { width: 120px; height: 120px; object-fit: contain; margin-bottom: 8px; }
 .home-title { font-size: 2.6rem; font-weight: 900; color: #5b21b6; margin-bottom: 6px; }
 .home-subtitle { font-size: 1.05rem; color: #6b7280; margin-bottom: 32px; }
 .section-label {

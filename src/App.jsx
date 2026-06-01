@@ -85,7 +85,7 @@ function HomeScreen({ onStart }) {
 
   return (
     <div className="screen">
-      <div className="logo">🔢</div>
+      <img src="/logo.png" alt="Maths Dash logo" className="logo-img" />
       <h1 className="home-title">Maths Dash!</h1>
       <p className="home-subtitle">Fast-fire maths practice for kids</p>
 
