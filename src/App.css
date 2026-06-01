@@ -156,6 +156,28 @@ body {
 }
 .home-btn:hover { background: #e5e7eb; transform: translateY(-2px); }
 
+/* Best score badge on mode buttons */
+.mode-best {
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-top: 4px;
+  opacity: 0.85;
+}
+
+/* New best banner */
+.new-best-banner {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: white;
+  font-size: 1rem;
+  font-weight: 900;
+  border-radius: 50px;
+  padding: 8px 24px;
+  margin-bottom: 20px;
+  display: inline-block;
+  animation: correct-flash 0.4s ease;
+}
+
 /* Footer */
 .footer {
   text-align: center;

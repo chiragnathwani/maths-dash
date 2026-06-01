@@ -3,6 +3,7 @@ import './App.css'
 
 const GAME_DURATION = 60
 const TABLES = [1,2,3,4,5,6,7,8,9,10,11,12]
+const STORAGE_KEY = 'mathsdash'
 
 const MODES = [
   { id: 'times', label: 'Times Tables', icon: '✖️', desc: '6 × 7 = ?' },
@@ -10,6 +11,18 @@ const MODES = [
   { id: 'missing', label: 'Missing Number', icon: '❓', desc: '6 × ? = 42' },
   { id: 'mixed', label: 'Mixed', icon: '🔀', desc: 'All types!' },
 ]
+
+function loadStorage() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}
+  } catch {
+    return {}
+  }
+}
+
+function saveStorage(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
 
 function shuffle(arr) {
   const a = [...arr]
@@ -67,8 +80,13 @@ function getRating(score) {
 }
 
 function HomeScreen({ onStart }) {
-  const [selectedTables, setSelectedTables] = useState(new Set())
-  const [selectedMode, setSelectedMode] = useState('times')
+  const stored = loadStorage()
+  const [selectedTables, setSelectedTables] = useState(() => {
+    const saved = stored.lastTables
+    return new Set(Array.isArray(saved) && saved.length ? saved : [])
+  })
+  const [selectedMode, setSelectedMode] = useState(stored.lastMode || 'times')
+  const bestScores = stored.bestScores || {}
 
   const toggleTable = (t) => {
     setSelectedTables(prev => {
@@ -82,6 +100,13 @@ function HomeScreen({ onStart }) {
   const clearAll = () => setSelectedTables(new Set())
 
   const hasSelection = selectedTables.size > 0
+
+  const handleStart = () => {
+    const tables = [...selectedTables]
+    const s = loadStorage()
+    saveStorage({ ...s, lastTables: tables, lastMode: selectedMode })
+    onStart(tables, selectedMode)
+  }
 
   return (
     <div className="screen">
@@ -119,6 +144,9 @@ function HomeScreen({ onStart }) {
             <span className="mode-icon">{m.icon}</span>
             {m.label}
             <br /><small style={{fontWeight:400, opacity:0.8}}>{m.desc}</small>
+            {bestScores[m.id] ? (
+              <span className="mode-best">🏅 Best: {bestScores[m.id]}</span>
+            ) : null}
           </button>
         ))}
       </div>
@@ -126,7 +154,7 @@ function HomeScreen({ onStart }) {
       <button
         className="start-btn"
         disabled={!hasSelection}
-        onClick={() => onStart([...selectedTables], selectedMode)}
+        onClick={handleStart}
       >
         ▶ Start!
       </button>
@@ -239,22 +267,38 @@ function GameScreen({ table, mode, onEnd }) {
       </div>
 
       <div className="streak-bar">
-        {streak >= 3 ? `🔥 ${streak} in a row!` : streak >= 2 ? '⚡ Keep it up!' : ' '}
+        {streak >= 3 ? `🔥 ${streak} in a row!` : streak >= 2 ? '⚡ Keep it up!' : ' '}
       </div>
     </div>
   )
 }
 
-function ResultsScreen({ result, onPlayAgain, onHome }) {
+function ResultsScreen({ result, mode, onPlayAgain, onHome }) {
   const rating = getRating(result.score)
   const total = result.score + result.wrong
   const accuracy = total > 0 ? Math.round((result.score / total) * 100) : 0
+
+  const stored = loadStorage()
+  const bestScores = stored.bestScores || {}
+  const prevBest = bestScores[mode] || 0
+  const isNewBest = result.score > prevBest
+
+  useEffect(() => {
+    if (isNewBest) {
+      const s = loadStorage()
+      saveStorage({ ...s, bestScores: { ...(s.bestScores || {}), [mode]: result.score } })
+    }
+  }, [])
 
   return (
     <div className="screen">
       <div className="results-emoji">{rating.emoji}</div>
       <h2 className="results-title">{rating.title}</h2>
       <p className="results-subtitle">{rating.msg}</p>
+
+      {isNewBest && (
+        <div className="new-best-banner">🎉 New best score!</div>
+      )}
 
       <div className="results-stats">
         <div className="result-stat">
@@ -270,6 +314,12 @@ function ResultsScreen({ result, onPlayAgain, onHome }) {
           <div className="stat-value" style={{color:'#f59e0b'}}>{result.bestStreak}</div>
         </div>
       </div>
+
+      {prevBest > 0 && !isNewBest && (
+        <p style={{color:'#6b7280', fontSize:'0.9rem', marginBottom:20}}>
+          🏅 Your best for this mode: <strong>{prevBest}</strong>
+        </p>
+      )}
 
       <div className="results-actions">
         <button className="play-again-btn" onClick={onPlayAgain}>
@@ -315,6 +365,7 @@ export default function App() {
   return (
     <ResultsScreen
       result={result}
+      mode={config.mode}
       onPlayAgain={() => setScreen('game')}
       onHome={() => { setConfig(null); setResult(null); setScreen('home') }}
     />
