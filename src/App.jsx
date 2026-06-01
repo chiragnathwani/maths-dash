@@ -298,7 +298,12 @@ export default function App() {
     setScreen('results')
   }
 
-  if (screen === 'home') return <HomeScreen onStart={handleStart} />
+  if (screen === 'home') return (
+    <>
+      <HomeScreen onStart={handleStart} />
+      <footer className="footer">© 2026 Activ Ops Solutions Ltd. All rights reserved.</footer>
+    </>
+  )
   if (screen === 'game') return (
     <GameScreen
       key={JSON.stringify(config) + Date.now()}

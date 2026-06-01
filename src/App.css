@@ -156,6 +156,14 @@ body {
 }
 .home-btn:hover { background: #e5e7eb; transform: translateY(-2px); }
 
+/* Footer */
+.footer {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.5);
+}
+
 /* Responsive */
 @media (max-width: 500px) {
   .screen { padding: 24px 16px; }
