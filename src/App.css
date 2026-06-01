@@ -60,6 +60,14 @@ body {
 }
 .table-btn.mixed:hover { opacity: 0.9; transform: scale(1.03); }
 
+/* All / Clear buttons */
+.tiny-btn {
+  font-size: 0.75rem; font-weight: 700; padding: 4px 10px;
+  border: 2px solid #e5e7eb; border-radius: 8px;
+  background: white; cursor: pointer; color: #6b7280; transition: all 0.15s;
+}
+.tiny-btn:hover { border-color: #8b5cf6; color: #5b21b6; }
+
 /* Mode selector */
 .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
 .mode-btn {

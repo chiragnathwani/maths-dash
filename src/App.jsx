@@ -67,8 +67,21 @@ function getRating(score) {
 }
 
 function HomeScreen({ onStart }) {
-  const [selectedTable, setSelectedTable] = useState(null)
+  const [selectedTables, setSelectedTables] = useState(new Set())
   const [selectedMode, setSelectedMode] = useState('times')
+
+  const toggleTable = (t) => {
+    setSelectedTables(prev => {
+      const next = new Set(prev)
+      next.has(t) ? next.delete(t) : next.add(t)
+      return next
+    })
+  }
+
+  const selectAll = () => setSelectedTables(new Set(TABLES))
+  const clearAll = () => setSelectedTables(new Set())
+
+  const hasSelection = selectedTables.size > 0
 
   return (
     <div className="screen">
@@ -76,23 +89,23 @@ function HomeScreen({ onStart }) {
       <h1 className="home-title">Maths Dash!</h1>
       <p className="home-subtitle">Fast-fire maths practice for kids</p>
 
-      <p className="section-label">Choose your times table</p>
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10}}>
+        <p className="section-label" style={{margin:0}}>Choose your times tables</p>
+        <div style={{display:'flex', gap:8}}>
+          <button className="tiny-btn" onClick={selectAll}>All</button>
+          <button className="tiny-btn" onClick={clearAll}>Clear</button>
+        </div>
+      </div>
       <div className="table-grid">
         {TABLES.map(t => (
           <button
             key={t}
-            className={`table-btn${selectedTable === t ? ' selected' : ''}`}
-            onClick={() => setSelectedTable(prev => prev === t ? null : t)}
+            className={`table-btn${selectedTables.has(t) ? ' selected' : ''}`}
+            onClick={() => toggleTable(t)}
           >
             {t}×
           </button>
         ))}
-        <button
-          className={`table-btn mixed${selectedTable === 'mixed' ? ' selected' : ''}`}
-          onClick={() => setSelectedTable(prev => prev === 'mixed' ? null : 'mixed')}
-        >
-          🔀 Mixed
-        </button>
       </div>
 
       <p className="section-label">Choose a game type</p>
@@ -112,14 +125,14 @@ function HomeScreen({ onStart }) {
 
       <button
         className="start-btn"
-        disabled={!selectedTable}
-        onClick={() => onStart(selectedTable, selectedMode)}
+        disabled={!hasSelection}
+        onClick={() => onStart([...selectedTables], selectedMode)}
       >
         ▶ Start!
       </button>
-      {!selectedTable && (
+      {!hasSelection && (
         <p style={{marginTop:12, color:'#9ca3af', fontSize:'0.9rem'}}>
-          Pick a times table to begin
+          Pick at least one times table to begin
         </p>
       )}
     </div>
@@ -140,9 +153,7 @@ function GameScreen({ table, mode, onEnd }) {
   const endedRef = useRef(false)
 
   const nextQuestion = useCallback(() => {
-    const resolvedTable = table === 'mixed'
-      ? TABLES[Math.floor(Math.random() * TABLES.length)]
-      : table
+    const resolvedTable = table[Math.floor(Math.random() * table.length)]
     const q = generateQuestion(resolvedTable, mode)
     setQuestion(q)
     setOptions(generateOptions(q.answer))
@@ -277,8 +288,8 @@ export default function App() {
   const [config, setConfig] = useState(null)
   const [result, setResult] = useState(null)
 
-  const handleStart = (table, mode) => {
-    setConfig({ table, mode })
+  const handleStart = (tables, mode) => {
+    setConfig({ table: tables, mode })
     setScreen('game')
   }
 
