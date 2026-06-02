@@ -273,6 +273,24 @@ body {
   color: rgba(255,255,255,0.5);
 }
 
+.kofi-btn {
+  display: inline-block;
+  background: #ff5e5b;
+  color: white;
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 8px 20px;
+  border-radius: 50px;
+  text-decoration: none;
+  transition: all 0.2s;
+  box-shadow: 0 3px 10px rgba(255,94,91,0.4);
+}
+.kofi-btn:hover {
+  background: #ff4340;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255,94,91,0.5);
+}
+
 /* Responsive */
 @media (max-width: 500px) {
   .screen { padding: 24px 16px; }
