@@ -483,6 +483,12 @@ function GameScreen({table,mode,onEnd}){
     setTimeout(()=>nextQuestion(),420)
   }
 
+  const handleQuit = () => {
+    if (endedRef.current) return
+    endedRef.current = true
+    onEnd({ score, wrong, bestStreak: Math.max(bestStreak, streakRef.current) })
+  }
+
   if(!question)return null
   const hasVisual=!!question.visual
   const isFrac=question.isFrac
@@ -493,6 +499,7 @@ function GameScreen({table,mode,onEnd}){
         <div className="stat-box score-box"><div className="stat-label">Score</div><div className="stat-value">{score}</div></div>
         <div className={`stat-box timer-box${timeLeft<=10?' danger':''}`}><div className="stat-label">Time</div><div className="stat-value">{timeLeft}s</div></div>
         <div className="stat-box"><div className="stat-label">Wrong</div><div className="stat-value" style={{color:'#ef4444'}}>{wrong}</div></div>
+        <button className="quit-btn" onClick={handleQuit} title="Quit game">✕</button>
       </div>
       <div className="progress-bar"><div className="progress-fill" style={{width:`${(timeLeft/GAME_DURATION)*100}%`}}/></div>
 
@@ -614,6 +621,12 @@ function NumberLineGameScreen({mode,timed,onEnd}){
     setTimeout(()=>nextQuestion(),600)
   }
 
+  const handleQuit = () => {
+    if (endedRef.current) return
+    endedRef.current = true
+    onEnd({ score, wrong, bestStreak: Math.max(bestStreak, streakRef.current) })
+  }
+
   if(!question)return null
 
   return(
@@ -625,6 +638,7 @@ function NumberLineGameScreen({mode,timed,onEnd}){
           :<div className="stat-box"><div className="stat-label">Range</div><div className="stat-value" style={{fontSize:'0.9rem'}}>{cfg.min}–{cfg.max.toLocaleString()}</div></div>
         }
         <div className="stat-box"><div className="stat-label">Wrong</div><div className="stat-value" style={{color:'#ef4444'}}>{wrong}</div></div>
+        <button className="quit-btn" onClick={handleQuit} title="Quit game">✕</button>
       </div>
       {timed&&<div className="progress-bar"><div className="progress-fill" style={{width:`${(timeLeft/GAME_DURATION)*100}%`}}/></div>}
       <div className="nl-question">{question.text}</div>

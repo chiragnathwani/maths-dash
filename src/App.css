@@ -96,6 +96,16 @@ body {
 .stat-box { background: #f3f4f6; border-radius: 16px; padding: 10px 20px; min-width: 90px; }
 .stat-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #9ca3af; }
 .stat-value { font-size: 1.8rem; font-weight: 900; color: #111827; line-height: 1.1; }
+.quit-btn {
+  background: #f3f4f6; color: #6b7280;
+  border: none; border-radius: 10px;
+  width: 36px; height: 36px;
+  font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  flex-shrink: 0; align-self: center;
+}
+.quit-btn:hover { background: #fee2e2; color: #ef4444; }
+
 .timer-box { background: #fef3c7; }
 .timer-box .stat-value { color: #d97706; }
 .timer-box.danger { background: #fee2e2; animation: pulse 0.5s infinite alternate; }
