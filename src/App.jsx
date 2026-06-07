@@ -316,7 +316,7 @@ export default function App() {
     <div style={{display:'flex', flexDirection:'column', alignItems:'center', width:'100%'}}>
       <HomeScreen onStart={(tables, mode) => { setConfig({ table: tables, mode }); setScreen('game') }} />
       <footer className="footer">
-        <a href="https://ko-fi.com/activops" target="_blank" rel="noopener noreferrer" className="kofi-btn">
+        <a href="https://ko-fi.com/activlearn" target="_blank" rel="noopener noreferrer" className="kofi-btn">
           ☕ Support us on Ko-fi
         </a>
         <div style={{marginTop:8}}>© 2026 Activ Ops Solutions Ltd. All rights reserved.</div>
