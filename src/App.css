@@ -273,6 +273,32 @@ body {
   opacity: 0.85;
 }
 
+/* History panel */
+.history-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-top: 4px;
+}
+.history-stat {
+  background: #ecfdf5;
+  border-radius: 12px;
+  padding: 10px 4px;
+  text-align: center;
+}
+.history-stat-value { font-size: 1.4rem; font-weight: 900; color: #059669; line-height: 1.1; }
+.history-stat-label { font-size: 0.62rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+
+.history-progress-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0;
+  font-size: 0.85rem;
+  border-bottom: 1px solid #ecfdf5;
+}
+.history-progress-row:last-child { border-bottom: none; }
+.history-progress-mode { font-weight: 700; color: #1f2937; }
+.history-progress-scores { font-weight: 700; color: #6b7280; white-space: nowrap; }
+
 /* New best banner */
 .new-best-banner {
   background: linear-gradient(135deg, #f59e0b, #ef4444);

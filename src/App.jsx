@@ -80,6 +80,12 @@ function addScoreToHistory(mode,score){
   saveStorage({...s,scoreHistory:{...h,[mode]:updated}})
   return updated[0].score===score&&updated[0]===entry
 }
+function addToPlayLog(mode,score,wrong){
+  const s=loadStorage(), log=s.playLog||[]
+  const now=new Date()
+  const entry={mode,score,wrong,date:now.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}),ts:now.getTime()}
+  saveStorage({...s,playLog:[...log,entry].slice(-300)})
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function shuffle(arr){
@@ -329,8 +335,88 @@ function TopScoresPanel({onClose, filterModes}){
   )
 }
 
+// ── History Panel (parents: results, progress, usage) ─────────────────────────
+function HistoryPanel({onClose}){
+  const{playLog=[]}=loadStorage()
+  const total=playLog.length
+  const now=Date.now(), DAY=86400000
+  const today=playLog.filter(e=>now-e.ts<DAY).length
+  const week=playLog.filter(e=>now-e.ts<7*DAY).length
+  const daysActive=new Set(playLog.map(e=>e.date)).size
+  const totalCorrect=playLog.reduce((a,e)=>a+e.score,0)
+  const totalWrong=playLog.reduce((a,e)=>a+e.wrong,0)
+  const avgAcc=(totalCorrect+totalWrong)>0?Math.round((totalCorrect/(totalCorrect+totalWrong))*100):0
+
+  const byMode={}
+  playLog.forEach(e=>{(byMode[e.mode]=byMode[e.mode]||[]).push(e)})
+  const progress=Object.entries(byMode)
+    .filter(([,plays])=>plays.length>=2)
+    .map(([id,plays])=>{
+      const m=ALL_MODES.find(x=>x.id===id)
+      const first=plays[0].score
+      const best=Math.max(...plays.map(p=>p.score))
+      return{id,label:m?.label||id,icon:m?.icon||'❔',first,best}
+    })
+    .filter(p=>p.best>p.first)
+
+  const recent=[...playLog].reverse().slice(0,12)
+
+  return(
+    <div className="top-scores-panel">
+      <div className="top-scores-header" style={{background:'linear-gradient(135deg,#059669,#047857)'}}>
+        <h3 className="top-scores-title">📊 History</h3>
+        <button className="tiny-btn" onClick={onClose}>✕ Close</button>
+      </div>
+      {!total
+        ? <p style={{color:'#9ca3af',fontSize:'0.9rem',textAlign:'center',padding:'16px 0'}}>No games played yet — get started!</p>
+        : <>
+          <div className="top-scores-mode">
+            <div className="top-scores-mode-title">🗓️ Usage</div>
+            <div className="history-stats-grid">
+              <div className="history-stat"><div className="history-stat-value">{total}</div><div className="history-stat-label">Games played</div></div>
+              <div className="history-stat"><div className="history-stat-value">{today}</div><div className="history-stat-label">Today</div></div>
+              <div className="history-stat"><div className="history-stat-value">{week}</div><div className="history-stat-label">This week</div></div>
+              <div className="history-stat"><div className="history-stat-value">{daysActive}</div><div className="history-stat-label">Days active</div></div>
+            </div>
+            <p style={{fontSize:'0.8rem',color:'#6b7280',marginTop:10}}>Overall accuracy across all games: <strong style={{color:'#059669'}}>{avgAcc}%</strong></p>
+          </div>
+
+          {progress.length>0 && (
+            <div className="top-scores-mode">
+              <div className="top-scores-mode-title">📈 Progress</div>
+              {progress.map(p=>(
+                <div key={p.id} className="history-progress-row">
+                  <span className="history-progress-mode">{p.icon} {p.label}</span>
+                  <span className="history-progress-scores">{p.first} → <strong style={{color:'#059669'}}>{p.best}</strong> <span style={{color:'#10b981'}}>▲</span></span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="top-scores-mode">
+            <div className="top-scores-mode-title">🕓 Recent Activity</div>
+            <table className="top-scores-table"><tbody>
+              {recent.map((e,i)=>{
+                const m=ALL_MODES.find(x=>x.id===e.mode)
+                return(
+                  <tr key={i}>
+                    <td className="rank-cell">{m?.icon||'❔'}</td>
+                    <td className="score-cell" style={{width:'auto',flex:1}}>{m?.label||e.mode}</td>
+                    <td className="score-cell">{e.score}</td>
+                    <td className="date-cell">{e.date}</td>
+                  </tr>
+                )
+              })}
+            </tbody></table>
+          </div>
+        </>
+      }
+    </div>
+  )
+}
+
 // ── Category Menu (Home) ───────────────────────────────────────────────────────
-function CategoryMenu({ onSelect, onShowScores }) {
+function CategoryMenu({ onSelect, onShowScores, onShowHistory }) {
   const { scoreHistory = {} } = loadStorage()
   return (
     <div className="screen">
@@ -350,7 +436,10 @@ function CategoryMenu({ onSelect, onShowScores }) {
           )
         })}
       </div>
-      <button className="tiny-btn scores-toggle-btn" onClick={onShowScores}>🏆 View Top Scores</button>
+      <div style={{ display:'flex', gap:10, flexWrap:'wrap', justifyContent:'center' }}>
+        <button className="tiny-btn scores-toggle-btn" onClick={onShowScores}>🏆 View Top Scores</button>
+        <button className="tiny-btn scores-toggle-btn" onClick={onShowHistory}>📊 History</button>
+      </div>
     </div>
   )
 }
@@ -676,6 +765,7 @@ function ResultsScreen({result,mode,onPlayAgain,onHome}){
     const prev=scoreHistory[mode]?.[0]?.score||0
     setPrevBest(prev)
     setIsNewBest(addScoreToHistory(mode,result.score)&&result.score>=prev)
+    addToPlayLog(mode,result.score,result.wrong)
   },[])
   return(
     <div className="screen">
@@ -704,6 +794,7 @@ export default function App(){
   const [config, setConfig]         = useState(null)
   const [result, setResult]         = useState(null)
   const [showAllScores, setShowAllScores] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
   // If hash changes while in game/results, abandon and follow the hash
   useEffect(() => {
@@ -738,7 +829,7 @@ export default function App(){
     if (cat) {
       content = <CategoryScreen category={cat} onStart={handleStart} onBack={() => go('home')}/>
     } else {
-      content = <CategoryMenu onSelect={id => go(id)} onShowScores={() => setShowAllScores(true)}/>
+      content = <CategoryMenu onSelect={id => go(id)} onShowScores={() => setShowAllScores(true)} onShowHistory={() => setShowHistory(true)}/>
     }
   }
 
@@ -752,6 +843,13 @@ export default function App(){
         <div className="scores-overlay" onClick={() => setShowAllScores(false)}>
           <div className="scores-overlay-inner" onClick={e => e.stopPropagation()}>
             <TopScoresPanel onClose={() => setShowAllScores(false)}/>
+          </div>
+        </div>
+      )}
+      {showHistory && (
+        <div className="scores-overlay" onClick={() => setShowHistory(false)}>
+          <div className="scores-overlay-inner" onClick={e => e.stopPropagation()}>
+            <HistoryPanel onClose={() => setShowHistory(false)}/>
           </div>
         </div>
       )}
