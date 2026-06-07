@@ -227,6 +227,17 @@ body {
 }
 .top-scores-mode:last-child { border-bottom: none; }
 
+.top-scores-section-title {
+  background: #f3f4f6;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 16px;
+  border-bottom: 1px solid #ede9fe;
+}
+
 .top-scores-mode-title {
   font-size: 0.8rem;
   font-weight: 700;

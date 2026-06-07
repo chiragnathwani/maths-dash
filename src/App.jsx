@@ -6,36 +6,40 @@ const TABLES = [1,2,3,4,5,6,7,8,9,10,11,12]
 const STORAGE_KEY = 'mathsdash'
 const TOP_N = 5
 
-const MODES = [
-  { id: 'times', label: 'Times Tables', icon: '✖️', desc: '6 × 7 = ?' },
-  { id: 'division', label: 'Division', icon: '➗', desc: '42 ÷ 7 = ?' },
-  { id: 'missing', label: 'Missing Number', icon: '❓', desc: '6 × ? = 42' },
-  { id: 'mixed', label: 'Mixed', icon: '🔀', desc: 'All types!' },
+const TIMES_MODES = [
+  { id: 'times',   label: 'Times Tables',   icon: '✖️', desc: '6 × 7 = ?' },
+  { id: 'division', label: 'Division',      icon: '➗', desc: '42 ÷ 7 = ?' },
+  { id: 'missing',  label: 'Missing Number', icon: '❓', desc: '6 × ? = 42' },
+  { id: 'mixed',    label: 'Mixed',          icon: '🔀', desc: 'All types!' },
 ]
+
+const ROUNDING_MODES = [
+  { id: 'round10',   label: 'Nearest 10',    icon: '🔟', desc: 'Round 47 → ?' },
+  { id: 'round100',  label: 'Nearest 100',   icon: '💯', desc: 'Round 347 → ?' },
+  { id: 'round1000', label: 'Nearest 1,000', icon: '🔢', desc: 'Round 3,472 → ?' },
+]
+
+const ALL_MODES = [...TIMES_MODES, ...ROUNDING_MODES]
+const ROUNDING_IDS = new Set(ROUNDING_MODES.map(m => m.id))
 
 const RANK_MEDALS = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣']
 
+// ── Storage ───────────────────────────────────────────────────────────────────
 function loadStorage() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {} }
   catch { return {} }
 }
-
-function saveStorage(data) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-}
-
+function saveStorage(data) { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) }
 function addScoreToHistory(mode, score) {
   const s = loadStorage()
   const history = s.scoreHistory || {}
-  const modeHistory = history[mode] || []
   const entry = { score, date: new Date().toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' }) }
-  const updated = [...modeHistory, entry]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, TOP_N)
+  const updated = [...(history[mode] || []), entry].sort((a,b) => b.score - a.score).slice(0, TOP_N)
   saveStorage({ ...s, scoreHistory: { ...history, [mode]: updated } })
   return updated[0].score === score && updated[0] === entry
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
 function shuffle(arr) {
   const a = [...arr]
   for (let i = a.length - 1; i > 0; i--) {
@@ -45,23 +49,24 @@ function shuffle(arr) {
   return a
 }
 
-function generateQuestion(table, mode) {
-  const multiplier = Math.floor(Math.random() * 12) + 1
-  const a = table, b = multiplier, product = a * b
+// ── Times table questions ─────────────────────────────────────────────────────
+function generateTimesQuestion(table, mode) {
+  const b = Math.floor(Math.random() * 12) + 1
+  const product = table * b
   let actualMode = mode
   if (mode === 'mixed') actualMode = ['times', 'division', 'missing'][Math.floor(Math.random() * 3)]
   if (actualMode === 'times') {
-    const [x, y] = Math.random() > 0.5 ? [a, b] : [b, a]
+    const [x, y] = Math.random() > 0.5 ? [table, b] : [b, table]
     return { text: `${x} × ${y} = ?`, answer: product }
   } else if (actualMode === 'division') {
-    return { text: `${product} ÷ ${a} = ?`, answer: b }
+    return { text: `${product} ÷ ${table} = ?`, answer: b }
   } else {
-    const [x, y] = Math.random() > 0.5 ? [a, b] : [b, a]
+    const [x, y] = Math.random() > 0.5 ? [table, b] : [b, table]
     return { text: `${x} × ? = ${product}`, answer: y }
   }
 }
 
-function generateOptions(answer) {
+function generateTimesOptions(answer) {
   const options = new Set([answer])
   const nearby = [answer-2, answer-1, answer+1, answer+2, answer-3, answer+3, answer*2, Math.max(1, answer-4)]
   for (const n of shuffle(nearby)) {
@@ -72,38 +77,68 @@ function generateOptions(answer) {
   return shuffle([...options])
 }
 
+// ── Rounding questions ────────────────────────────────────────────────────────
+function generateRoundingQuestion(mode) {
+  if (mode === 'round10') {
+    // avoid exact multiples of 10
+    let n
+    do { n = Math.floor(Math.random() * 89) + 11 } while (n % 10 === 0)
+    const answer = Math.round(n / 10) * 10
+    return { text: `Round ${n} to the nearest 10`, answer }
+  } else if (mode === 'round100') {
+    let n
+    do { n = Math.floor(Math.random() * 899) + 101 } while (n % 100 === 0)
+    const answer = Math.round(n / 100) * 100
+    return { text: `Round ${n} to the nearest 100`, answer }
+  } else {
+    let n
+    do { n = Math.floor(Math.random() * 8999) + 1001 } while (n % 1000 === 0)
+    const answer = Math.round(n / 1000) * 1000
+    return { text: `Round ${n.toLocaleString()} to the nearest 1,000`, answer }
+  }
+}
+
+function generateRoundingOptions(answer, mode) {
+  const unit = mode === 'round10' ? 10 : mode === 'round100' ? 100 : 1000
+  const options = new Set([answer])
+  const offsets = [1, 2, 3, -1, -2, -3]
+  for (const o of shuffle(offsets)) {
+    const n = answer + o * unit
+    if (n >= 0 && n !== answer) options.add(n)
+    if (options.size === 4) break
+  }
+  while (options.size < 4) {
+    const n = answer + (Math.floor(Math.random() * 6) + 1) * unit * (Math.random() > 0.5 ? 1 : -1)
+    if (n >= 0) options.add(n)
+  }
+  return shuffle([...options])
+}
+
 function getRating(score) {
-  if (score >= 20) return { emoji: '🏆', title: 'Times Table Champion!', msg: 'Absolutely brilliant!' }
+  if (score >= 20) return { emoji: '🏆', title: 'Maths Champion!', msg: 'Absolutely brilliant!' }
   if (score >= 15) return { emoji: '⭐', title: 'Super Star!', msg: 'Amazing work!' }
   if (score >= 10) return { emoji: '😊', title: 'Great Job!', msg: "You're getting really good!" }
   if (score >= 5)  return { emoji: '👍', title: 'Good Effort!', msg: 'Keep practising!' }
   return { emoji: '💪', title: 'Keep Going!', msg: 'Practice makes perfect!' }
 }
 
+// ── Top Scores Panel ──────────────────────────────────────────────────────────
 function TopScoresPanel({ onClose }) {
   const { scoreHistory = {} } = loadStorage()
-  const hasAny = MODES.some(m => scoreHistory[m.id]?.length)
+  const hasAny = ALL_MODES.some(m => scoreHistory[m.id]?.length)
 
-  return (
-    <div className="top-scores-panel">
-      <div className="top-scores-header">
-        <h3 className="top-scores-title">🏆 Top Scores</h3>
-        <button className="tiny-btn" onClick={onClose}>✕ Close</button>
-      </div>
-      {!hasAny && (
-        <p style={{color:'#9ca3af', fontSize:'0.9rem', textAlign:'center', padding:'16px 0'}}>
-          No scores yet — play a game!
-        </p>
-      )}
-      {MODES.map(m => {
-        const entries = scoreHistory[m.id]
-        if (!entries?.length) return null
-        return (
+  const renderSection = (modes, title) => {
+    const withScores = modes.filter(m => scoreHistory[m.id]?.length)
+    if (!withScores.length) return null
+    return (
+      <>
+        <div className="top-scores-section-title">{title}</div>
+        {withScores.map(m => (
           <div key={m.id} className="top-scores-mode">
             <div className="top-scores-mode-title">{m.icon} {m.label}</div>
             <table className="top-scores-table">
               <tbody>
-                {entries.map((e, i) => (
+                {scoreHistory[m.id].map((e, i) => (
                   <tr key={i} className={i === 0 ? 'top-row' : ''}>
                     <td className="rank-cell">{RANK_MEDALS[i]}</td>
                     <td className="score-cell">{e.score}</td>
@@ -113,12 +148,29 @@ function TopScoresPanel({ onClose }) {
               </tbody>
             </table>
           </div>
-        )
-      })}
+        ))}
+      </>
+    )
+  }
+
+  return (
+    <div className="top-scores-panel">
+      <div className="top-scores-header">
+        <h3 className="top-scores-title">🏆 Top Scores</h3>
+        <button className="tiny-btn" onClick={onClose}>✕ Close</button>
+      </div>
+      {!hasAny
+        ? <p style={{color:'#9ca3af', fontSize:'0.9rem', textAlign:'center', padding:'16px 0'}}>No scores yet — play a game!</p>
+        : <>
+            {renderSection(TIMES_MODES, '✖️ Times Tables')}
+            {renderSection(ROUNDING_MODES, '🔢 Rounding')}
+          </>
+      }
     </div>
   )
 }
 
+// ── Home Screen ───────────────────────────────────────────────────────────────
 function HomeScreen({ onStart }) {
   const stored = loadStorage()
   const [selectedTables, setSelectedTables] = useState(() =>
@@ -127,11 +179,11 @@ function HomeScreen({ onStart }) {
   const [selectedMode, setSelectedMode] = useState(stored.lastMode || 'times')
   const [showScores, setShowScores] = useState(false)
 
+  const isRounding = ROUNDING_IDS.has(selectedMode)
   const scoreHistory = stored.scoreHistory || {}
-  const bestScores = Object.fromEntries(
-    MODES.map(m => [m.id, scoreHistory[m.id]?.[0]?.score || 0])
-  )
-  const hasAnyScores = MODES.some(m => bestScores[m.id] > 0)
+  const bestScores = Object.fromEntries(ALL_MODES.map(m => [m.id, scoreHistory[m.id]?.[0]?.score || 0]))
+  const hasAnyScores = ALL_MODES.some(m => bestScores[m.id] > 0)
+  const canStart = isRounding || selectedTables.size > 0
 
   const toggleTable = (t) => setSelectedTables(prev => {
     const next = new Set(prev)
@@ -140,7 +192,7 @@ function HomeScreen({ onStart }) {
   })
 
   const handleStart = () => {
-    const tables = [...selectedTables]
+    const tables = isRounding ? [] : [...selectedTables]
     saveStorage({ ...loadStorage(), lastTables: tables, lastMode: selectedMode })
     onStart(tables, selectedMode)
   }
@@ -151,24 +203,29 @@ function HomeScreen({ onStart }) {
       <h1 className="home-title">Maths Dash!</h1>
       <p className="home-subtitle">Fast-fire maths practice for kids</p>
 
-      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10}}>
-        <p className="section-label" style={{margin:0}}>Choose your times tables</p>
-        <div style={{display:'flex', gap:8}}>
-          <button className="tiny-btn" onClick={() => setSelectedTables(new Set(TABLES))}>All</button>
-          <button className="tiny-btn" onClick={() => setSelectedTables(new Set())}>Clear</button>
-        </div>
-      </div>
-      <div className="table-grid">
-        {TABLES.map(t => (
-          <button key={t} className={`table-btn${selectedTables.has(t) ? ' selected' : ''}`} onClick={() => toggleTable(t)}>
-            {t}×
-          </button>
-        ))}
-      </div>
+      {/* Times table selector — hidden for rounding modes */}
+      {!isRounding && (
+        <>
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10}}>
+            <p className="section-label" style={{margin:0}}>Choose your times tables</p>
+            <div style={{display:'flex', gap:8}}>
+              <button className="tiny-btn" onClick={() => setSelectedTables(new Set(TABLES))}>All</button>
+              <button className="tiny-btn" onClick={() => setSelectedTables(new Set())}>Clear</button>
+            </div>
+          </div>
+          <div className="table-grid">
+            {TABLES.map(t => (
+              <button key={t} className={`table-btn${selectedTables.has(t) ? ' selected' : ''}`} onClick={() => toggleTable(t)}>
+                {t}×
+              </button>
+            ))}
+          </div>
+        </>
+      )}
 
-      <p className="section-label">Choose a game type</p>
+      <p className="section-label" style={{marginTop: isRounding ? 0 : 16}}>Times Tables</p>
       <div className="mode-grid">
-        {MODES.map(m => (
+        {TIMES_MODES.map(m => (
           <button key={m.id} className={`mode-btn${selectedMode === m.id ? ' selected' : ''}`} onClick={() => setSelectedMode(m.id)}>
             <span className="mode-icon">{m.icon}</span>
             {m.label}
@@ -178,10 +235,22 @@ function HomeScreen({ onStart }) {
         ))}
       </div>
 
-      <button className="start-btn" disabled={selectedTables.size === 0} onClick={handleStart}>
+      <p className="section-label" style={{marginTop:16}}>Rounding</p>
+      <div className="mode-grid" style={{gridTemplateColumns:'repeat(3,1fr)'}}>
+        {ROUNDING_MODES.map(m => (
+          <button key={m.id} className={`mode-btn${selectedMode === m.id ? ' selected' : ''}`} onClick={() => setSelectedMode(m.id)}>
+            <span className="mode-icon">{m.icon}</span>
+            {m.label}
+            <br /><small style={{fontWeight:400, opacity:0.8}}>{m.desc}</small>
+            {bestScores[m.id] > 0 && <span className="mode-best">🏅 Best: {bestScores[m.id]}</span>}
+          </button>
+        ))}
+      </div>
+
+      <button className="start-btn" disabled={!canStart} onClick={handleStart}>
         ▶ Start!
       </button>
-      {selectedTables.size === 0 && (
+      {!canStart && (
         <p style={{marginTop:12, color:'#9ca3af', fontSize:'0.9rem'}}>Pick at least one times table to begin</p>
       )}
 
@@ -197,6 +266,7 @@ function HomeScreen({ onStart }) {
   )
 }
 
+// ── Game Screen ───────────────────────────────────────────────────────────────
 function GameScreen({ table, mode, onEnd }) {
   const [question, setQuestion] = useState(null)
   const [options, setOptions] = useState([])
@@ -211,9 +281,16 @@ function GameScreen({ table, mode, onEnd }) {
   const endedRef = useRef(false)
 
   const nextQuestion = useCallback(() => {
-    const resolvedTable = table[Math.floor(Math.random() * table.length)]
-    const q = generateQuestion(resolvedTable, mode)
-    setQuestion(q); setOptions(generateOptions(q.answer)); setFeedback(null)
+    let q, opts
+    if (ROUNDING_IDS.has(mode)) {
+      q = generateRoundingQuestion(mode)
+      opts = generateRoundingOptions(q.answer, mode)
+    } else {
+      const resolvedTable = table[Math.floor(Math.random() * table.length)]
+      q = generateTimesQuestion(resolvedTable, mode)
+      opts = generateTimesOptions(q.answer)
+    }
+    setQuestion(q); setOptions(opts); setFeedback(null)
     lockedRef.current = false
   }, [table, mode])
 
@@ -260,7 +337,7 @@ function GameScreen({ table, mode, onEnd }) {
       <div className="answers-grid">
         {options.map((opt, i) => (
           <button key={i} className={`answer-btn${feedback?.idx === i ? (feedback.correct ? ' correct' : ' wrong') : ''}`} onClick={() => handleAnswer(opt, i)}>
-            {opt}
+            {opt.toLocaleString()}
           </button>
         ))}
       </div>
@@ -269,11 +346,11 @@ function GameScreen({ table, mode, onEnd }) {
   )
 }
 
+// ── Results Screen ────────────────────────────────────────────────────────────
 function ResultsScreen({ result, mode, onPlayAgain, onHome }) {
   const rating = getRating(result.score)
   const total = result.score + result.wrong
   const accuracy = total > 0 ? Math.round((result.score / total) * 100) : 0
-
   const [isNewBest, setIsNewBest] = useState(false)
   const [prevBest, setPrevBest] = useState(0)
 
@@ -281,8 +358,7 @@ function ResultsScreen({ result, mode, onPlayAgain, onHome }) {
     const { scoreHistory = {} } = loadStorage()
     const prev = scoreHistory[mode]?.[0]?.score || 0
     setPrevBest(prev)
-    const newBest = addScoreToHistory(mode, result.score)
-    setIsNewBest(newBest && result.score >= prev)
+    setIsNewBest(addScoreToHistory(mode, result.score) && result.score >= prev)
   }, [])
 
   return (
@@ -307,6 +383,7 @@ function ResultsScreen({ result, mode, onPlayAgain, onHome }) {
   )
 }
 
+// ── App ───────────────────────────────────────────────────────────────────────
 export default function App() {
   const [screen, setScreen] = useState('home')
   const [config, setConfig] = useState(null)
