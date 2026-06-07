@@ -699,17 +699,16 @@ export default function App(){
   const handleStart = (tables, mode, timed) => {
     setConfig({ table: tables, mode, timed })
     setGameScreen('game')
-    go('game')
   }
 
-  const handleEnd = r => { setResult(r); setGameScreen('results'); go('results') }
+  const handleEnd = r => { setResult(r); setGameScreen('results') }
 
   const handleHome = () => {
     setGameScreen(null); setConfig(null); setResult(null)
     go('home')
   }
 
-  const handlePlayAgain = () => { setGameScreen('game'); go('game') }
+  const handlePlayAgain = () => setGameScreen('game')
 
   // Determine content
   let content
