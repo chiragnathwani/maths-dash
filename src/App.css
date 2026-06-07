@@ -276,6 +276,60 @@ body {
   animation: correct-flash 0.4s ease;
 }
 
+/* Timed toggle */
+.timed-toggle {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin: 16px 0 4px; flex-wrap: wrap;
+}
+.toggle-btns { display: flex; gap: 6px; }
+.toggle-opt {
+  padding: 7px 14px; font-size: 0.8rem; font-weight: 700;
+  border: 2px solid #e5e7eb; border-radius: 50px;
+  background: white; color: #6b7280; cursor: pointer; transition: all 0.15s;
+}
+.toggle-opt.active { background: #7c3aed; border-color: #7c3aed; color: white; }
+.toggle-opt:hover:not(.active) { border-color: #8b5cf6; color: #5b21b6; }
+
+/* Number line game */
+.nl-question {
+  font-size: 1.3rem; font-weight: 800; color: #1f2937;
+  text-align: center; margin: 12px 0 8px;
+}
+.nl-line-wrap {
+  background: #f5f3ff; border-radius: 16px; padding: 14px 8px 8px;
+  margin-bottom: 12px;
+}
+.nl-feedback {
+  text-align: center; font-size: 1rem; font-weight: 800;
+  padding: 8px 0; border-radius: 10px; margin-bottom: 10px;
+}
+.nl-correct { color: #059669; background: #d1fae5; }
+.nl-wrong   { color: #dc2626; background: #fee2e2; }
+
+/* Place-it answer buttons (A B C D) */
+.place-grid { grid-template-columns: repeat(4, 1fr); }
+.place-grid .answer-btn { font-size: 1.4rem; padding: 18px 6px; }
+
+/* Number pad */
+.number-pad { margin: 4px auto 0; max-width: 240px; }
+.pad-display {
+  font-size: 2rem; font-weight: 900; color: #1f2937;
+  background: #f3f4f6; border-radius: 12px; padding: 10px;
+  text-align: center; margin-bottom: 10px; min-height: 56px;
+  display: flex; align-items: center; justify-content: center;
+}
+.pad-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 8px; }
+.pad-key {
+  padding: 16px; font-size: 1.3rem; font-weight: 700;
+  border: 3px solid #e5e7eb; border-radius: 14px;
+  background: white; cursor: pointer; transition: all 0.15s; color: #374151;
+}
+.pad-key:hover { border-color: #8b5cf6; color: #5b21b6; transform: scale(1.05); }
+.pad-key:active { transform: scale(0.97); }
+.pad-submit { background: linear-gradient(135deg,#10b981,#059669); color: white; border-color: transparent; }
+.pad-submit:hover { opacity: 0.9; transform: scale(1.05); }
+.pad-delete { background: #fef2f2; color: #ef4444; border-color: #fecaca; }
+
 /* Footer */
 .footer {
   text-align: center;
